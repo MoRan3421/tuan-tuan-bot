@@ -1,11 +1,11 @@
 steps:
   # 1. Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/tuantuanbot', './bot']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/tuantuan-bot', './bot']
 
   # 2. Push the image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/tuantuanbot']
+    args: ['push', 'gcr.io/$PROJECT_ID/tuantuan-bot']
 
   # 3. Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -13,9 +13,9 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'tuantuanbot'
+      - 'tuantuan-bot'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/tuantuanbot'
+      - 'gcr.io/$PROJECT_ID/tuantuan-bot'
       - '--region'
       - 'us-central1'
       - '--platform'
