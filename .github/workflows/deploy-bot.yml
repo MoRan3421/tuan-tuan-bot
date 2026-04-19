@@ -14,21 +14,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Google Auth
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
-
-      - name: Set up Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v2'
-
-      - name: Enable Google Cloud APIs
+      - name: '🛠️ Bomb-proof Manual Auth'
         run: |
-          gcloud services enable artifactregistry.googleapis.com \
-                                 run.googleapis.com \
-                                 cloudbuild.googleapis.com \
-                                 iam.googleapis.com
-        continue-on-error: true
+          echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > key.json
+          gcloud auth activate-service-account --key-file=key.json
+          gcloud config set project tuantuanbot-28647
+
+      - name: Authorize Docker
+        run: gcloud auth configure-docker gcr.io --quiet
 
       - name: Authorize Docker
         run: gcloud auth configure-docker gcr.io --quiet
