@@ -29,17 +29,12 @@ jobs:
         env:
           VITE_DISCORD_PROVIDER_ID: oidc.discord
           VITE_GUILD_ID: ""
-          VITE_API_BASE_URL: https://tuantuanbot-28647-uc.a.run.app
+          VITE_API_BASE_URL: https://tuantuan-bot-tuantuanbot-28647-uc.a.run.app
 
-      - name: 'Prepare Firebase Credentials'
+      - name: '🚀 Bomb-proof Firebase Deploy'
         run: |
           echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > firebase-key.json
-
-      - name: Deploy to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.GCP_SA_KEY }}'
-          channelId: live
-          projectId: tuantuanbot-28647
-          entryPoint: web
+          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/firebase-key.json
+          # Deploy from the web subdirectory
+          cd web
+          npx firebase-tools deploy --only hosting --project tuantuanbot-28647 --non-interactive
