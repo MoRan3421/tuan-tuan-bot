@@ -23,9 +23,6 @@ jobs:
       - name: Authorize Docker
         run: gcloud auth configure-docker gcr.io --quiet
 
-      - name: Authorize Docker
-        run: gcloud auth configure-docker gcr.io --quiet
-
       - name: Build and Push
         run: |
           docker build -t gcr.io/tuantuanbot-28647/tuantuan-bot ./bot
