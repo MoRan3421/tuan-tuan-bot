@@ -378,12 +378,12 @@ const App = () => {
                 <div className="flex items-center bg-white p-3 rounded-full border-2 border-pink-100 gap-6 pr-8 shadow-sm">
                     <div className="relative">
                         <img src={authUser.photoURL} className="w-12 h-12 rounded-full border-2 border-pink-300" />
-                        <div className="absolute -bottom-1 -right-1 bg-green-400 w-4 h-4 rounded-full border-2 border-white animate-pulse" title="Cloud Active"></div>
+                        <div className="absolute -bottom-1 -right-1 bg-green-400 w-4 h-4 rounded-full border-2 border-white animate-pulse" title="Supreme Cloud Guard Active"></div>
                     </div>
-                    <div>
+                    <div className="hidden md:block">
                         <div className="text-sm font-bold text-gray-700">{authUser.displayName}</div>
                         <div className="text-[10px] text-pink-400 font-bold uppercase flex items-center gap-2">
-                             <Sparkles size={10} /> {guildConfig.isPremium ? l.supremeMaster : l.cuteMaster}
+                             <div className="w-2 h-2 bg-pink-400 rounded-full animate-ping"></div> {guildConfig.isPremium ? l.supremeMaster : l.cuteMaster}
                         </div>
                     </div>
                 </div>

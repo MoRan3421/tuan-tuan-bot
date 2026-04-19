@@ -22,12 +22,13 @@ jobs:
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
 
-      - name: '🛠️ Self-Healing: Enable Required APIs'
+      - name: Enable Google Cloud APIs
         run: |
           gcloud services enable artifactregistry.googleapis.com \
                                  run.googleapis.com \
                                  cloudbuild.googleapis.com \
                                  iam.googleapis.com
+        continue-on-error: true
 
       - name: Authorize Docker
         run: gcloud auth configure-docker gcr.io --quiet
