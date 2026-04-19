@@ -1,4 +1,4 @@
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && !process.env.SPACE_ID) {
     require('dotenv').config({ path: '../.env' });
 }
 const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ActivityType, PermissionsBitField, Partials, AttachmentBuilder } = require('discord.js');
@@ -10,8 +10,43 @@ const Groq = require('groq-sdk');
 const { Player } = require('discord-player');
 const express = require('express');
 
+// --- ROBUST ENVIRONMENT CHECK ---
+const CRITICAL_ENV = ['DISCORD_TOKEN', 'GOOGLE_API_KEY', 'FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+const missingCritical = CRITICAL_ENV.filter(key => !process.env[key]);
+
+if (missingCritical.length > 0) {
+    console.error(`\n❌ [STOP] 关键环境变量缺失: ${missingCritical.join(', ')}`);
+    console.error("👉 请务必在 Hugging Face 的 Settings -> Variables and secrets 中添加这些变量。");
+    console.error("如果没有这些变量，团团无法启动喵！\n");
+    // 在云端环境中，我们抛出错误让容器重启/停止，并在日志中显示清晰信息
+    throw new Error(`CRITICAL_ENV_MISSING: ${missingCritical.join(', ')}`);
+}
+
+// --- OPTIONAL ENGINES ---
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+let stripe = null;
+if (stripeKey) {
+    try {
+        stripe = require('stripe')(stripeKey);
+        console.log("💳 Stripe engine initialized.");
+    } catch (e) {
+        console.error("❌ Stripe init failed:", e.message);
+    }
+} else {
+    console.warn("⚠️ [SKIPPED] STRIPE_SECRET_KEY 缺失，至尊会员充值功能将不可用。");
+}
+
 // --- FIREBASE ADMIN ---
 if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        })
+    });
+    console.log("🔥 Firebase Admin initialized.");
+}
     const requiredEnv = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
     const missing = requiredEnv.filter(key => !process.env[key]);
     
@@ -76,7 +111,6 @@ async function getAIResponse(prompt, guildId = 'global') {
 }
 
 const app = express();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 
 app.use(cors());
@@ -99,8 +133,10 @@ async function verifyUser(req, res, next) {
 app.get('/', (req, res) => res.send('TuanTuan Supreme Core is Online 🍵'));
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
-// --- STRIPE COYOUT SESSION ---
+// --- STRIPE CHECKOUT SESSION ---
 app.post('/api/stripe/create-checkout-session', verifyUser, async (req, res) => {
+    if (!stripe) return res.status(503).json({ error: "Stripe features are currently unavailable. Please contact the bot owner." });
+
     const { guildId, plan } = req.body;
     const priceId = plan === 'lifetime' ? process.env.STRIPE_PRICE_ID_LIFETIME : process.env.STRIPE_PRICE_ID_MONTHLY;
 
