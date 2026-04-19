@@ -33,8 +33,15 @@ jobs:
 
       - name: '🚀 Bomb-proof Firebase Deploy'
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > firebase-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/firebase-key.json
-          # Deploy from the web subdirectory
+          # 1. Create absolute path for the key
+          KEY_PATH="${{ github.workspace }}/firebase-key.json"
+          
+          # 2. Decode the secret
+          echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > "$KEY_PATH"
+          
+          # 3. Export credentials for Firebase CLI
+          export GOOGLE_APPLICATION_CREDENTIALS="$KEY_PATH"
+          
+          # 4. Deploy with explicit project flag
           cd web
           npx firebase-tools deploy --only hosting --project tuantuanbot-28647 --non-interactive
