@@ -75,6 +75,17 @@
 
 ---
 
+## 🛠️ 至尊维护指南 (Supreme Maintenance)
+
+如果云端部署提示 **Permission Denied**，请使用内置的至尊修复脚本：
+
+1.  **云端修复 (推荐)**：
+    *   在 Google Cloud Shell 中执行：`bash gcp-fix/fix.sh`
+2.  **本地修复**：
+    *   在 PowerShell 中执行：`.\gcp-fix\fix.ps1`
+
+---
+
 <div align="center">
   <p>Made with ❤️ & 🎋 by godking512 Team</p>
   <img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=100&section=footer" width="100%">
