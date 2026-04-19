@@ -92,15 +92,15 @@ app.get('/health', (req, res) => res.status(200).send('OK'));
 // --- STRIPE COYOUT SESSION ---
 app.post('/api/stripe/create-checkout-session', verifyUser, async (req, res) => {
     const { guildId, plan } = req.body;
-    const priceId = plan === 'lifetime' ? process.env.STRIPE_LIFETIME_PRICE : process.env.STRIPE_MONTHLY_PRICE;
+    const priceId = plan === 'lifetime' ? process.env.STRIPE_PRICE_ID_LIFETIME : process.env.STRIPE_PRICE_ID_MONTHLY;
 
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{ price: priceId, quantity: 1 }],
             mode: 'payment',
-            success_url: `${process.env.WEB_URL}/success?guildId=${guildId}`,
-            cancel_url: `${process.env.WEB_URL}/cancel`,
+            success_url: `${process.env.DASHBOARD_URL}/success?guildId=${guildId}`,
+            cancel_url: `${process.env.DASHBOARD_URL}/cancel`,
             metadata: { guildId, type: 'premium_upgrade' }
         });
         res.json({ url: session.url });
