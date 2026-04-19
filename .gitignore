@@ -1,0 +1,15 @@
+**/node_modules/
+.env
+service-account.json
+**/dist/
+**/dist-electron/
+.firebase/
+.firebaserc
+*.log
+.DS_Store
+.vscode/
+**/tmp/
+**/Cwd/
+*.exe
+scripts/setup-github-secrets.js
+node_modules
