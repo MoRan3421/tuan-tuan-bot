@@ -180,6 +180,19 @@ const App = () => {
       const savedToken = localStorage.getItem("dc_token");
       if (savedToken) fetchDiscordUser(savedToken);
     }
+  useEffect(() => {
+    import("firebase/auth").then(({ getRedirectResult }) => {
+      getRedirectResult(auth).then((result) => {
+        if (result) {
+          const credential = OAuthProvider.credentialFromResult(result);
+          const token = credential?.accessToken;
+          if (token) {
+            localStorage.setItem("dc_token", token);
+            refreshGuilds();
+          }
+        }
+      });
+    }).catch(console.error);
   }, []);
 
   const fetchDiscordUser = async (token) => {
@@ -214,17 +227,10 @@ const App = () => {
 
   const login = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      // Access token can be used for Discord API calls
-      const credential = OAuthProvider.credentialFromResult(result);
-      const token = credential.accessToken;
-      if (token) {
-        localStorage.setItem("dc_token", token);
-        await refreshGuilds();
-      }
+      await signInWithRedirect(auth, provider);
     } catch (e) {
-      console.error("Login Result Error:", e);
-      alert(lang === "ZH" ? "登录失败喵！(请检查浏览器是否拦截了弹窗)" : "Login failed! (Check if popups are blocked)");
+      console.error("Login Error:", e);
+      alert(lang === "ZH" ? "登录失败喵！" : "Login failed!");
     }
   };
 

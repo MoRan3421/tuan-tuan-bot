@@ -18,10 +18,6 @@ jobs:
           gcloud auth activate-service-account --key-file=key.json
           gcloud config set project tuantuanbot-28647
 
-      - name: '🔓 Enable Google Services'
-        run: |
-          gcloud services enable artifactregistry.googleapis.com run.googleapis.com cloudbuild.googleapis.com
-
       - name: Authorize Docker
         run: gcloud auth configure-docker gcr.io --quiet
 
