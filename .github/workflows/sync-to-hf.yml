@@ -3,7 +3,7 @@ name: 🚀 Sync to Hugging Face Spaces
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  workflow_dispatch: # 允许手动点击按钮运行
 
 jobs:
   sync:
@@ -18,5 +18,13 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git remote add hf https://tuantuanbot:$HF_TOKEN@huggingface.co/spaces/tuantuanbot/tuan-tuan-bot
-          git push --force hf main
+          if [ -z "$HF_TOKEN" ]; then
+            echo "❌ 错误: 未能在 GitHub Secrets 中找到 HF_TOKEN！请前往仓库设置添加。"
+            exit 1
+          fi
+          # 确保用户信息正确
+          git config --global user.email "bot@tuantuan.bot"
+          git config --global user.name "TuanTuan Sync Bot"
+          
+          # 强制推送到 Hugging Face 的 main 分支
+          git push --force https://tuantuanbot:$HF_TOKEN@huggingface.co/spaces/tuantuanbot/tuan-tuan-bot main
