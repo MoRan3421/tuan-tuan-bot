@@ -1,3 +1,12 @@
+---
+title: Tuan-Tuan-Bot
+emoji: 🐼
+colorFrom: pink
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # 🍡 团团 Supreme · TuanTuan Supreme Core 🐼
 
 <div align="center">
