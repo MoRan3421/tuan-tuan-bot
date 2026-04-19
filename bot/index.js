@@ -12,6 +12,16 @@ const express = require('express');
 
 // --- FIREBASE ADMIN ---
 if (!admin.apps.length) {
+    const requiredEnv = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+    const missing = requiredEnv.filter(key => !process.env[key]);
+    
+    if (missing.length > 0) {
+        console.error(`❌ CRITICAL ERROR: Missing environment variables: ${missing.join(', ')}`);
+        console.error("👉 Please go to Hugging Face Settings -> Variables and secrets to add them.");
+        // We throw a more descriptive error instead of letting it crash on .replace()
+        throw new Error(`Firebase Configuration Missing: ${missing.join(', ')}`);
+    }
+
     admin.initializeApp({
         credential: admin.credential.cert({
             projectId: process.env.FIREBASE_PROJECT_ID,
