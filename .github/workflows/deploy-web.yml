@@ -31,6 +31,10 @@ jobs:
           VITE_GUILD_ID: ""
           VITE_API_BASE_URL: https://tuantuanbot-28647-uc.a.run.app
 
+      - name: 'Prepare Firebase Credentials'
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > firebase-key.json
+
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -38,3 +42,4 @@ jobs:
           firebaseServiceAccount: '${{ secrets.GCP_SA_KEY }}'
           channelId: live
           projectId: tuantuanbot-28647
+          entryPoint: web
