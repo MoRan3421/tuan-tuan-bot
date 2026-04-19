@@ -547,12 +547,15 @@ client.on('messageCreate', async message => {
     }
 
 
-    let config = await getGuildConfig(message.guild.id);
-    if (config.aiChannelId === message.channel.id || message.mentions.has(client.user)) {
+    // --- AI CHAT LOGIC (Strict Channel Support) ---
+    const config = await getGuildConfig(message.guild.id);
+    const isAiChannel = config.aiChannelId === message.channel.id;
+    const isMentioned = message.mentions.has(client.user);
+
+    if (isAiChannel || (!config.aiChannelId && isMentioned)) {
         message.channel.sendTyping();
         try {
-            const prompt = `你是一只叫“团团”的超可爱熊猫机器人。用户说：${message.cleanContent}`;
-            const response = await getAIResponse(prompt, message.guild.id);
+            const response = await getAIResponse(message.cleanContent, message.guild.id);
             await message.reply(response);
         } catch (e) {
              console.error('❌ AI Reply Interaction Error:', e.message);

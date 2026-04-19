@@ -165,6 +165,13 @@ const App = () => {
   const ONLY_GUILD_ID = import.meta.env.VITE_GUILD_ID || "";
   const l = t[lang];
 
+  const [apiOnline, setApiOnline] = useState(false);
+  useEffect(() => {
+    fetch(`${API_BASE}/health`)
+      .then(r => setApiOnline(r.ok))
+      .catch(() => setApiOnline(false));
+  }, [API_BASE]);
+
   useEffect(() => {
     // 监听 URL Hash 处理登录回调
     const hash = window.location.hash;
@@ -558,9 +565,10 @@ const App = () => {
                 </>
             )}
         </div>
-        <div className="mt-auto p-8 opacity-20 text-[10px] font-bold uppercase tracking-[6px] text-center">
-            Panda Cloud Sync · v7.0.0 · Designed by godking512
-        </div>
+         <div className="mt-auto p-8 opacity-40 text-[10px] font-bold uppercase tracking-[4px] text-center flex items-center justify-center gap-3">
+             <div className={`w-2 h-2 rounded-full ${apiOnline ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
+             Panda Cloud Sync · v7.0.0 · Designed by godking512
+         </div>
       </div>
     </div>
   );
