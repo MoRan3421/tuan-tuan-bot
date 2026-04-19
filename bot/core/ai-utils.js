@@ -26,8 +26,8 @@ async function askSupremeAI(prompt, engine = 'GEMINI') {
         if (!apiKey) throw new Error('Missing GOOGLE_API_KEY');
         
         const genAI = new GoogleGenerativeAI(apiKey);
-        // 使用 1.5-flash，它是目前最稳定且响应最快的模型
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); 
+        // 使用 2.0-flash，它是目前最稳定且响应最快的模型
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }); 
         const result = await model.generateContent(prompt);
         return { text: result.response.text(), engine: 'Gemini 💎' };
     } catch (e) {

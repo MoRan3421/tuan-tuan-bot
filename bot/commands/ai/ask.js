@@ -24,37 +24,11 @@ module.exports = {
             const config = guildDoc.exists ? guildDoc.data() : { aiEngine: 'GEMINI' };
             const engine = config.aiEngine || 'GEMINI';
 
-            let answer = '';
-            let modelName = '';
-            let embedColor = 0xa2d2ff;
-
-            if (engine === 'GROQ' && process.env.Groq_Cloud_API) {
-                try {
-                    const Groq = require('groq-sdk');
-                    const groq = new Groq({ apiKey: process.env.Groq_Cloud_API });
-                    const result = await groq.chat.completions.create({
-                        messages: [{ role: 'user', content: prompt }],
-                        model: 'llama-3.3-70b-versatile',
-                        temperature: 0.7,
-                    });
-                    answer = result.choices[0].message.content;
-                    modelName = 'Llama-Groq ⚡';
-                    embedColor = 0xb7ffec; // Pastel Mint
-                } catch (e) { engine === 'GEMINI'; }
-            }
-
-            if (!answer) {
-                const { GoogleGenerativeAI } = require('@google/generative-ai');
-                const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-                const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-                const result = await model.generateContent(prompt);
-                answer = result.response.text();
-                modelName = 'Gemini-Flash 💎';
-                embedColor = 0xa2d2ff; // Pastel Blue
-            }
+            const { askSupremeAI } = require('../../core/ai-utils');
+            const { text: answer, engine: modelName } = await askSupremeAI(prompt, engine);
 
             const embed = new EmbedBuilder()
-                .setColor(embedColor)
+                .setColor(0xa2d2ff)
                 .setTitle(`🧠 团团的回答 (${modelName})`)
                 .setDescription(answer)
                 .setThumbnail('https://i.ibb.co/Lzdg1K6L/panda-logo.png')

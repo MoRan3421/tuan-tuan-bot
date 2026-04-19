@@ -8,19 +8,19 @@ module.exports = {
         await interaction.reply({ content: '好哒主人！团团这就给自己做个全身检查，请稍等喵~ 🐾🩹', fetchReply: true });
         const startTime = Date.now();
 
+        // 统一使用 ai-utils 进行体检测试
+        const { askSupremeAI } = require('../../core/ai-utils');
+
         // Test Gemini speed
         let geminiStatus = '❌ 离线中...';
         let geminiLatency = '--';
         try {
-            const { GoogleGenerativeAI } = require('@google/generative-ai');
-            const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
             const gs1 = Date.now();
-            await model.generateContent('Reply with: OK');
+            await askSupremeAI('Reply with OK', 'GEMINI');
             geminiLatency = `${Date.now() - gs1}ms`;
-            geminiStatus = '✅ 充满活力！';
+            geminiStatus = '✅ 活力十足 (2.0-Flash)！';
         } catch (e) {
-            geminiStatus = `⚠️ 哎呀: ${e.message.substring(0, 30)}...`;
+            geminiStatus = `⚠️ 故障喵: ${e.message.substring(0, 30)}...`;
         }
 
         // Test Groq speed
@@ -28,18 +28,12 @@ module.exports = {
         let groqLatency = '--';
         if (process.env.Groq_Cloud_API) {
             try {
-                const Groq = require('groq-sdk');
-                const groq = new Groq({ apiKey: process.env.Groq_Cloud_API });
                 const gs2 = Date.now();
-                await groq.chat.completions.create({
-                    messages: [{ role: 'user', content: 'OK' }],
-                    model: 'llama-3.3-70b-versatile',
-                    max_tokens: 5,
-                });
+                await askSupremeAI('OK', 'GROQ');
                 groqLatency = `${Date.now() - gs2}ms`;
-                groqStatus = '✅ 极速冲刺！';
+                groqStatus = '✅ 极速冲刺 (Llama 3)！';
             } catch (e) {
-                groqStatus = `⚠️ 故障喵: ${e.message.substring(0, 30)}...`;
+                groqStatus = `⚠️ 哎呀: ${e.message.substring(0, 30)}...`;
             }
         }
 
@@ -49,7 +43,7 @@ module.exports = {
         const memUsage = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1);
 
         const embed = new EmbedBuilder()
-            .setColor(0xa2d2ff) // Pastel Blue
+            .setColor(0xa2d2ff)
             .setTitle('🧠 团团的大脑体检报告 · Kawaii Health')
             .setDescription('团团正在努力保持清醒，为您提供最棒的服务喔！🌸')
             .addFields(

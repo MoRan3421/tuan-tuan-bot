@@ -212,13 +212,20 @@ const App = () => {
     }
   };
 
-  const login = () => {
-    const CLIENT_ID = "1481640516931031050";
-    // 确保没有结尾的斜杠，防止 Discord 报错
-    const origin = window.location.origin.replace(/\/$/, ""); 
-    const REDIRECT_URI = encodeURIComponent(origin);
-    const SCOPES = encodeURIComponent("identify guilds");
-    window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=${SCOPES}`;
+  const login = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // Access token can be used for Discord API calls
+      const credential = OAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      if (token) {
+        localStorage.setItem("dc_token", token);
+        await refreshGuilds();
+      }
+    } catch (e) {
+      console.error("Login Result Error:", e);
+      alert(lang === "ZH" ? "登录失败喵！(请检查浏览器是否拦截了弹窗)" : "Login failed! (Check if popups are blocked)");
+    }
   };
 
   useEffect(() => {
