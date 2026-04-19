@@ -180,6 +180,8 @@ const App = () => {
       const savedToken = localStorage.getItem("dc_token");
       if (savedToken) fetchDiscordUser(savedToken);
     }
+  }, []);
+
   useEffect(() => {
     import("firebase/auth").then(({ getRedirectResult }) => {
       getRedirectResult(auth).then((result) => {
