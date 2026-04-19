@@ -161,7 +161,7 @@ const App = () => {
   const [premiumKey, setPremiumKey] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://tuantuanbot-28647-uc.a.run.app";
   const ONLY_GUILD_ID = import.meta.env.VITE_GUILD_ID || "";
   const l = t[lang];
 
