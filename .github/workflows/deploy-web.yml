@@ -1,0 +1,40 @@
+name: Deploy TuanTuan Web to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/**'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install and Build Web
+        run: |
+          cd web
+          npm install
+          npm run build
+        env:
+          VITE_DISCORD_PROVIDER_ID: oidc.discord
+          VITE_GUILD_ID: ""
+          VITE_API_BASE_URL: https://tuantuanbot-28647-uc.a.run.app
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.GCP_SA_KEY }}'
+          channelId: live
+          projectId: tuantuanbot-28647

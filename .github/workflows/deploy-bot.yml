@@ -37,6 +37,15 @@ jobs:
           docker build -t gcr.io/tuantuanbot-28647/tuantuan-bot ./bot
           docker push gcr.io/tuantuanbot-28647/tuantuan-bot
 
+      - name: '🚀 Register Slash Commands'
+        run: |
+          cd bot
+          npm install
+          node deploy-commands.js
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy tuantuanbot \
@@ -45,4 +54,4 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --min-instances 1 \
-            --set-env-vars "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }},FIREBASE_PROJECT_ID=tuantuanbot-28647,FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }},FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }},GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }},Groq_Cloud_API=${{ secrets.Groq_Cloud_API }}"
+            --set-env-vars "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }},FIREBASE_PROJECT_ID=tuantuanbot-28647,FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }},FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }},GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }},Groq_Cloud_API=${{ secrets.Groq_Cloud_API }},FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true"
