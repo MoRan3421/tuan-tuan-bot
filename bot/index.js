@@ -5,8 +5,6 @@ const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder, Actio
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Groq = require('groq-sdk');
 const { Player } = require('discord-player');
 const express = require('express');
 const cors = require('cors');
