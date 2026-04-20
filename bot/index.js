@@ -34,31 +34,79 @@ if (stripeKey) {
 }
 
 // --- FIREBASE ADMIN INITIALIZATION ---
+let db = null;
+let firebaseEnabled = false;
+
 if (!admin.apps.length) {
     try {
         const privateKey = process.env.FIREBASE_PRIVATE_KEY
             ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
             : undefined;
 
-        if (!privateKey || !privateKey.includes('BEGIN PRIVATE KEY')) {
+        if (!privateKey) {
+            console.warn("⚠️ [WARNING] FIREBASE_PRIVATE_KEY 未设置，Firebase 功能将被禁用。");
+        } else if (!privateKey.includes('BEGIN PRIVATE KEY')) {
             console.warn("⚠️ [WARNING] FIREBASE_PRIVATE_KEY 格式可能不正确，请确保它包含完整的证书内容。");
+            console.warn("   密钥长度:", privateKey.length, "字符");
+            console.warn("   期望以 '-----BEGIN PRIVATE KEY-----' 开头");
         }
 
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: privateKey
-            })
-        });
-        console.log("🔥 Firebase Admin initialized.");
+        if (privateKey && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PROJECT_ID) {
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey: privateKey
+                })
+            });
+            db = admin.firestore();
+            firebaseEnabled = true;
+            console.log("🔥 Firebase Admin initialized successfully.");
+            
+            // 测试 Firestore 连接
+            db.collection('health').doc('check').get()
+                .then(() => console.log("✅ Firestore connection test passed."))
+                .catch(err => {
+                    console.error("❌ Firestore connection test failed:", err.message);
+                    firebaseEnabled = false;
+                });
+        } else {
+            console.warn("⚠️ Firebase 配置不完整，某些功能将不可用。");
+            console.warn("   需要: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY");
+        }
     } catch (error) {
         console.error("❌ Firebase Init Error:", error.message);
-        // 如果是本地开发环境，不一定要因为 Firebase 挂掉而停止整个机器人
-        if (process.env.NODE_ENV === 'production') throw error;
+        if (process.env.NODE_ENV === 'production') {
+            console.error("⚠️ 生产环境 Firebase 初始化失败，继续运行降级模式...");
+        }
     }
 }
-const db = admin.firestore();
+
+// 如果 Firebase 未启用，创建一个内存中的模拟 db
+if (!db) {
+    console.warn("📝 Running in MEMORY MODE (Firebase disabled). Data will not persist!");
+    const memoryStore = new Map();
+    db = {
+        collection: (name) => ({
+            doc: (id) => ({
+                get: async () => ({
+                    exists: memoryStore.has(`${name}/${id}`),
+                    data: () => memoryStore.get(`${name}/${id}`) || {},
+                    id: id
+                }),
+                set: async (data) => {
+                    memoryStore.set(`${name}/${id}`, data);
+                    return true;
+                },
+                update: async (data) => {
+                    const existing = memoryStore.get(`${name}/${id}`) || {};
+                    memoryStore.set(`${name}/${id}`, { ...existing, ...data });
+                    return true;
+                }
+            })
+        })
+    };
+}
 
 const { askSupremeAI } = require('./core/ai-utils');
 const { generateRankCard, generateLevelUpCard } = require('./utils/rank-card');
