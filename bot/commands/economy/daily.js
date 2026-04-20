@@ -3,9 +3,10 @@ const admin = require('firebase-admin');
 const path = require('path');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('daily')
-        .setDescription('🎍 每日签到领竹子！团团等主人好久啦！🌸'),
+        .setDescription('📅 领取每日竹子：每天都有团团的投喂喵！✨'),
     async execute(interaction) {
         const db = admin.firestore();
         const userRef = db.collection('guilds').doc(interaction.guild.id).collection('members').doc(interaction.user.id);

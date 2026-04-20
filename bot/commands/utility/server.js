@@ -1,9 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('server')
-        .setDescription('🏰 团团的小管家报告：这是我们的温馨大家庭喵！✨'),
+        .setDescription('🏰 领地巡视：看看这个服务器的小秘密喵！'),
     async execute(interaction) {
         const { guild } = interaction;
         const owner = await guild.fetchOwner();

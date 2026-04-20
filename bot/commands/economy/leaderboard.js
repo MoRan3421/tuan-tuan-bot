@@ -2,9 +2,10 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const admin = require('firebase-admin');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('leaderboard')
-        .setDescription('🏆 看看这个服务器里哪些小伙伴最厉害哒！✨'),
+        .setDescription('🏆 至尊英雄榜：看看谁才是竹林里的最强霸主喵！'),
     async execute(interaction) {
         await interaction.reply({ content: '报告主人！团团正在努力搬运“至尊英雄榜”，请稍等一下喔！🐾🍡', fetchReply: true });
 

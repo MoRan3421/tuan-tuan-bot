@@ -1,9 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('ping')
-        .setDescription('📡 探测团团熊猫服务器的脉搏延迟'),
+        .setDescription('🏓 团团的小皮球：测测我和主人的默契度喵！'),
     async execute(interaction) {
         const sent = await interaction.reply({ content: '正在探测精英节点... 🐼', fetchReply: true });
         const latency = sent.createdTimestamp - interaction.createdTimestamp;

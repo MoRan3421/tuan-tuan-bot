@@ -2,9 +2,10 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const admin = require('firebase-admin');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('work')
-        .setDescription('🎋 陪团团去竹林采摘新鲜的下午茶喵！🍡'),
+        .setDescription('👷 帮团团一起干活：采集新鲜竹子来换取奖励喵！'),
     async execute(interaction) {
         const db = admin.firestore();
         const userId = interaction.user.id;

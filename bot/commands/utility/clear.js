@@ -1,9 +1,10 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('clear')
-        .setDescription('🧹 团团拿起小扫帚，帮主人把频道打扫得亮闪闪喵！✨')
+        .setDescription('🧹 团团大扫除：把乱糟糟的消息都清理掉喵！')
         .addIntegerOption(option => 
             option.setName('amount')
                 .setDescription('主人想打扫多少堆垃圾（消息）呀？(1-100)')

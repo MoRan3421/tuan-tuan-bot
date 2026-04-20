@@ -2,9 +2,10 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const admin = require('firebase-admin');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('pay')
-        .setDescription('💸 慷慨的主人，快把好吃的竹子送给小伙伴吧！✨')
+        .setDescription('💸 慷慨的主人：把好吃的竹子分享给其他小伙伴喵！')
         .addUserOption(option => option.setName('target').setDescription('谁是那个幸运的小伙伴呀？').setRequired(true))
         .addIntegerOption(option => option.setName('amount').setDescription('想送多少根竹子呢？').setRequired(true).setMinValue(1)),
     async execute(interaction) {

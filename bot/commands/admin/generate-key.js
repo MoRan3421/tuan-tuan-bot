@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('disc
 const admin = require('firebase-admin');
 
 module.exports = {
+    premiumOnly: true,
     data: new SlashCommandBuilder()
         .setName('generate-key')
         .setDescription('👑 [开发者专用] 生成 TuanTuan Supreme+ 激活码')

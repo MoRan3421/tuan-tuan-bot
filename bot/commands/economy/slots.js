@@ -2,9 +2,10 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const admin = require('firebase-admin');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('slots')
-        .setDescription('🎰 快来挑战“团团大转盘”，赢取更多甜甜的竹子喵！✨')
+        .setDescription('🎰 团团大转盘：试试手气，赢取更多竹子喵！')
         .addIntegerOption(option => 
             option.setName('bet')
                 .setDescription('主人想拿多少竹子来碰碰运气呀？')

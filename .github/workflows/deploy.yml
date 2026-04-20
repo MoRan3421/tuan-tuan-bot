@@ -1,0 +1,36 @@
+name: TuanTuan Supreme CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy_web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        working-directory: ./web
+        run: npm install
+      - name: Build Web
+        working-directory: ./web
+        env:
+          VITE_DISCORD_PROVIDER_ID: ${{ secrets.VITE_DISCORD_PROVIDER_ID }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        run: npm run build
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_TUANTUANBOT_28647 }}'
+          channelId: live
+          projectId: tuantuanbot-28647
+
+  notify_cloud:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Auto-Redeploy
+        run: |
+          echo "🚀 代码已同步至 GitHub！"
+          echo "Koyeb/Hugging Face 正在通过 Webhook 自动拉取最新代码并重启机器人..."
+          echo "团团即将在云端 24/7 焕新登场喵！🐾"

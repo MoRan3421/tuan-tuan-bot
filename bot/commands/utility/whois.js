@@ -2,9 +2,10 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const admin = require('firebase-admin');
 
 module.exports = {
+    premiumOnly: false,
     data: new SlashCommandBuilder()
         .setName('whois')
-        .setDescription('🕵️‍♀️ 团团的小放大镜：看看这位主人的秘密档案喵！✨')
+        .setDescription('🔍 团团的小雷达：看看这位小伙伴是谁喵！')
         .addUserOption(option => 
             option.setName('target')
                 .setDescription('想揭开谁的秘密呀？')
