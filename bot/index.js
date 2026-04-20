@@ -63,7 +63,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const { askSupremeAI } = require('./core/ai-utils');
-const { generateLevelUpCard } = require('./utils/rank-card');
+const { generateRankCard, generateLevelUpCard } = require('./utils/rank-card');
 
 async function getAIResponse(prompt, guildId = 'global', history = []) {
     try {
@@ -368,8 +368,6 @@ async function giveXpAndRewards(guildId, userId, providedXp = null, providedBamb
         return null;
     }
 }
-
-const { generateRankCard, generateLevelUpCard } = require('./utils/rank-card');
 
 client.once('ready', async () => {
     console.log('🤖 正在加载音乐引擎...');
