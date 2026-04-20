@@ -1,3 +1,12 @@
+---
+title: 🐼 TuanTuan Supreme Bot
+emoji: 🐼
+colorFrom: pink
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # 🎋 TuanTuan Supreme Core 🐼✨
 
 > **"主人好！我是团团，一只在云端守护主人的 AI 小熊猫喵！(✿◡‿◡)"**
