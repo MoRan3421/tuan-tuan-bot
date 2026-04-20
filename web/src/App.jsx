@@ -240,6 +240,9 @@ const App = () => {
   
   // Bot Profile States
   const [botProfile, setBotProfile] = useState({ nickname: "", avatar: "", status: "", bio: "" });
+  
+  // Discord Bot Info (for Logo)
+  const [botInfo, setBotInfo] = useState(null);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://tuantuanbot-tuan-tuan-bot.hf.space";
   const ONLY_GUILD_ID = import.meta.env.VITE_GUILD_ID || "";
@@ -253,6 +256,12 @@ const App = () => {
     fetch(`${API_BASE}/health`)
       .then(r => setApiOnline(r.ok))
       .catch(() => setApiOnline(false));
+    
+    // Fetch Discord Bot info for logo
+    fetch(`${API_BASE}/api/bot/info`)
+      .then(r => r.json())
+      .then(data => setBotInfo(data))
+      .catch(() => setBotInfo(null));
   }, [API_BASE]);
 
   useEffect(() => {
@@ -478,8 +487,8 @@ const App = () => {
             <motion.img 
                 animate={{ y: [0, -20, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                src="/panda-mascot.png" 
-                className="w-[180px] h-[180px] mx-auto mb-8 object-contain drop-shadow-2xl" 
+                src={botInfo?.avatar || "/panda-mascot.png"} 
+                className="w-[180px] h-[180px] mx-auto mb-8 object-contain drop-shadow-2xl rounded-full" 
                 alt="Mascot" 
             />
             
@@ -511,7 +520,7 @@ const App = () => {
       {/* Sidebar */}
       <motion.div initial={{ x: -100 }} animate={{ x: 0 }} className="side-tray">
         <div className="logo-wrap cursor-pointer hover:scale-110 transition-transform" onClick={() => setSelectedGuild(null)}>
-            <img src="/panda-mascot.png" className="w-16 h-16 drop-shadow-lg" alt="Logo" />
+            <img src={botInfo?.avatar || "/panda-mascot.png"} className="w-16 h-16 drop-shadow-lg rounded-full" alt="Logo" />
         </div>
         <div className="server-list-v">
             {guilds
@@ -595,8 +604,8 @@ const App = () => {
                         <motion.img 
                             animate={{ rotate: [0, 10, 0] }}
                             transition={{ duration: 6, repeat: Infinity }}
-                            src="/panda-mascot.png" 
-                            className="absolute -right-10 -bottom-10 w-80 opacity-20 grayscale brightness-200" 
+                            src={botInfo?.avatar || "/panda-mascot.png"} 
+                            className="absolute -right-10 -bottom-10 w-80 opacity-20 grayscale brightness-200 rounded-full" 
                         />
                     </div>
                     

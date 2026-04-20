@@ -109,6 +109,25 @@ async function verifyUser(req, res, next) {
 
 // --- SUPREME API ENDPOINTS ---
 
+// Get Bot Public Info (avatar, name, etc.)
+app.get('/api/bot/info', async (req, res) => {
+    try {
+        if (!client.user) {
+            return res.status(503).json({ error: 'Bot not ready yet' });
+        }
+        res.json({
+            id: client.user.id,
+            username: client.user.username,
+            discriminator: client.user.discriminator,
+            avatar: client.user.displayAvatarURL({ size: 256 }),
+            banner: client.user.bannerURL({ size: 256 }),
+            createdAt: client.user.createdAt
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Bot Profile Management
 app.post('/api/bot/profile', verifyUser, async (req, res) => {
     const { nickname, avatar, status, bio, guildId } = req.body;

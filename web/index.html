@@ -2,11 +2,25 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://i.ibb.co/Lzdg1K6L/panda-logo.png" />
+    <link rel="icon" type="image/png" href="https://i.ibb.co/Lzdg1K6L/panda-logo.png" id="favicon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="团团 Kawaii Panda · 大家的治愈系熊猫管家！由团团熊猫游戏主播 godking512 倾力打造的 Discord 机器人管理后台。" />
     <meta name="theme-color" content="#ffb7c5" />
     <title>团团 Kawaii Panda · 大家的温馨小站 🍡</title>
+    <script>
+      // 动态获取 Discord Bot 头像作为 favicon
+      const API_BASE = window.location.hostname.includes('localhost') 
+        ? 'http://localhost:8080' 
+        : 'https://tuantuanbot-tuan-tuan-bot.hf.space';
+      fetch(`${API_BASE}/api/bot/info`)
+        .then(r => r.json())
+        .then(data => {
+          if (data?.avatar) {
+            document.getElementById('favicon').href = data.avatar;
+          }
+        })
+        .catch(() => {});
+    </script>
   </head>
   <body>
     <div id="root"></div>
