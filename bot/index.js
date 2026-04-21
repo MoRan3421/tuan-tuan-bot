@@ -460,27 +460,37 @@ client.once('ready', async () => {
     await player.extractors.loadMulti(DefaultExtractors).catch(console.error);
     
     console.log(`🐼 团团 Kawaii Core 启动成功！已上线为：${client.user.tag}`);
+    console.log(`   🌐 已加入 ${client.guilds.cache.size} 个服务器`);
     client.user.setActivity('在竹林里打滚喵 | /help', { type: ActivityType.Playing });
 
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     
-    // --- REAL-TIME SYNC ENGINE ---
-    db.collection('guilds').onSnapshot(snapshot => {
-        snapshot.docChanges().forEach(async (change) => {
-            if (change.type === 'modified') {
-                const guildId = change.doc.id;
-                const data = change.doc.data();
-                guildConfigs.set(guildId, data); // Update cache
-                const guild = client.guilds.cache.get(guildId);
-                if (guild && data.nickname) {
-                    const me = guild.members.me;
-                    if (me && me.nickname !== data.nickname) {
-                        try { await me.setNickname(data.nickname); } catch (e) {}
+    // --- REAL-TIME SYNC ENGINE (仅当 Firebase 启用时) ---
+    if (firebaseEnabled && db && typeof db.collection === 'function') {
+        try {
+            db.collection('guilds').onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === 'modified') {
+                        const guildId = change.doc.id;
+                        const data = change.doc.data();
+                        guildConfigs.set(guildId, data); // Update cache
+                        const guild = client.guilds.cache.get(guildId);
+                        if (guild && data.nickname) {
+                            const me = guild.members.me;
+                            if (me && me.nickname !== data.nickname) {
+                                try { await me.setNickname(data.nickname); } catch (e) {}
+                            }
+                        }
                     }
-                }
-            }
-        });
-    });
+                });
+            });
+            console.log('✅ Firebase real-time sync enabled');
+        } catch (e) {
+            console.warn('⚠️ Firebase sync failed:', e.message);
+        }
+    } else {
+        console.log('📝 Running without Firebase real-time sync (memory mode)');
+    }
 
     // --- STARTUP COMMAND SYNC ---
     for (const [guildId, guild] of client.guilds.cache) {
@@ -878,7 +888,27 @@ const syncStats = async () => {
 setInterval(syncStats, 900000); // 15 mins
 
 process.on('unhandledRejection', (error) => {
-	console.error('Unhandled promise rejection:', error);
+	console.error('❌ Unhandled promise rejection:', error);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// --- DISCORD LOGIN ---
+console.log('🔑 Attempting to login to Discord...');
+client.login(process.env.DISCORD_TOKEN)
+    .then(() => {
+        console.log('✅ Discord login successful!');
+    })
+    .catch((error) => {
+        console.error('❌ Discord login failed:', error.message);
+        console.error('   Error code:', error.code);
+        if (error.code === 'TokenInvalid') {
+            console.error('   ⚠️ The Discord token is invalid. Please check your DISCORD_TOKEN secret.');
+        } else if (error.code === 'DisallowedIntent') {
+            console.error('   ⚠️ Missing privileged intents. Please enable them in Discord Developer Portal.');
+        }
+        // 保持进程运行以便查看错误日志
+        console.log('   Bot will retry connection in 30 seconds...');
+        setTimeout(() => {
+            console.log('🔄 Retrying Discord login...');
+            client.login(process.env.DISCORD_TOKEN);
+        }, 30000);
+    });
