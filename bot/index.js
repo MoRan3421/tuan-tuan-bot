@@ -138,7 +138,7 @@ const { generateRankCard, generateLevelUpCard } = require('./utils/rank-card');
 async function getAIResponse(prompt, guildId = 'global', history = []) {
     try {
         let engine = 'GEMINI';
-        if (guildId && guildId !== 'global') {
+        if (guildId && guildId !== 'global' && firebaseEnabled) {
             try {
                 const guildDoc = await db.collection('guilds').doc(guildId).get();
                 if (guildDoc.exists && guildDoc.data().aiEngine) {
