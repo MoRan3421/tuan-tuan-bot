@@ -160,6 +160,12 @@ async function verifyUser(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) return res.status(401).send('Unauthorized');
     const idToken = authHeader.split('Bearer ')[1];
+    
+    // 检查 Firebase 是否已初始化
+    if (!firebaseEnabled || admin.apps.length === 0) {
+        return res.status(503).json({ error: 'Authentication service unavailable. Firebase not initialized.' });
+    }
+    
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         req.user = decodedToken;
