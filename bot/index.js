@@ -1,6 +1,17 @@
 if (process.env.NODE_ENV !== 'production' && !process.env.SPACE_ID) {
     require('dotenv').config({ path: '../.env' });
 }
+
+// 设置全局代理（如果环境变量中有代理配置）
+if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+    const { setGlobalDispatcher, ProxyAgent } = require('undici');
+    const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+    if (proxyUrl) {
+        console.log(`🌐 Using proxy: ${proxyUrl}`);
+        setGlobalDispatcher(new ProxyAgent(proxyUrl));
+    }
+}
+
 const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ActivityType, PermissionsBitField, Partials, AttachmentBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
