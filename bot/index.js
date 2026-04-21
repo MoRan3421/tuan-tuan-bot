@@ -10,11 +10,19 @@ const express = require('express');
 const cors = require('cors');
 
 // --- ROBUST ENVIRONMENT CHECK ---
+console.log('🔍 Starting environment check...');
+console.log(`   SPACE_ID: ${process.env.SPACE_ID || 'not set'}`);
+console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+console.log(`   PORT: ${process.env.PORT || 'not set'}`);
+
 const CRITICAL_ENV = ['DISCORD_TOKEN', 'GOOGLE_API_KEY'];
 const OPTIONAL_ENV = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
 
 const missingCritical = CRITICAL_ENV.filter(key => !process.env[key]);
 const missingOptional = OPTIONAL_ENV.filter(key => !process.env[key]);
+
+console.log(`   DISCORD_TOKEN: ${process.env.DISCORD_TOKEN ? '✅ set (' + process.env.DISCORD_TOKEN.substring(0, 10) + '...)' : '❌ missing'}`);
+console.log(`   GOOGLE_API_KEY: ${process.env.GOOGLE_API_KEY ? '✅ set' : '❌ missing'}`);
 
 if (missingCritical.length > 0) {
     console.error(`\n❌ [STOP] 关键环境变量缺失: ${missingCritical.join(', ')}`);
@@ -25,6 +33,8 @@ if (missingCritical.length > 0) {
 if (missingOptional.length > 0) {
     console.warn(`\n⚠️ [WARNING] Firebase 配置缺失: ${missingOptional.join(', ')}`);
     console.warn("👉 团团将在内存模式运行，数据不会持久化。\n");
+} else {
+    console.log('✅ Firebase 配置完整');
 }
 
 // --- OPTIONAL ENGINES ---
@@ -341,6 +351,7 @@ app.listen(port, '0.0.0.0', () => {
 });
 
 // --- CORE BOT LOGIC ---
+console.log('🤖 Creating Discord client...');
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -352,6 +363,7 @@ const client = new Client({
     ],
     partials: [Partials.Channel, Partials.Message, Partials.User] 
 });
+console.log('✅ Discord client created');
 
 const player = new Player(client, {
     ytdlOptions: {
