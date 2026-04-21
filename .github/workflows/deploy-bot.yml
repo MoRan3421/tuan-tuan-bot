@@ -23,7 +23,7 @@ jobs:
 
       - name: Build and Push
         run: |
-          docker build -t gcr.io/tuantuanbot-28647/tuantuan-bot ./bot
+          docker build -t gcr.io/tuantuanbot-28647/tuantuan-bot .
           docker push gcr.io/tuantuanbot-28647/tuantuan-bot
 
       - name: '🚀 Register Slash Commands'

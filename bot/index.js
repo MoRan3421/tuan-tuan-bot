@@ -60,24 +60,30 @@ if (!admin.apps.length) {
         }
 
         if (privateKey && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PROJECT_ID) {
-            admin.initializeApp({
-                credential: admin.credential.cert({
-                    projectId: process.env.FIREBASE_PROJECT_ID,
-                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                    privateKey: privateKey
-                })
-            });
-            db = admin.firestore();
-            firebaseEnabled = true;
-            console.log("🔥 Firebase Admin initialized successfully.");
-            
-            // 测试 Firestore 连接
-            db.collection('health').doc('check').get()
-                .then(() => console.log("✅ Firestore connection test passed."))
-                .catch(err => {
-                    console.error("❌ Firestore connection test failed:", err.message);
-                    firebaseEnabled = false;
+            try {
+                admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId: process.env.FIREBASE_PROJECT_ID,
+                        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                        privateKey: privateKey
+                    })
                 });
+                db = admin.firestore();
+                firebaseEnabled = true;
+                console.log("🔥 Firebase Admin initialized successfully.");
+                
+                // 测试 Firestore 连接
+                db.collection('health').doc('check').get()
+                    .then(() => console.log("✅ Firestore connection test passed."))
+                    .catch(err => {
+                        console.error("❌ Firestore connection test failed:", err.message);
+                        firebaseEnabled = false;
+                    });
+            } catch (certError) {
+                console.error("❌ Firebase Certificate Error:", certError.message);
+                console.warn("⚠️ Firebase 配置错误，运行在内存模式。");
+                firebaseEnabled = false;
+            }
         } else {
             console.warn("⚠️ Firebase 配置不完整，某些功能将不可用。");
             console.warn("   需要: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY");
