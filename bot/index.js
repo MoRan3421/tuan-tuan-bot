@@ -213,13 +213,23 @@ app.post('/api/bot/profile', verifyUser, async (req, res) => {
             if (avatar && avatar.startsWith('http')) {
                 await client.user.setAvatar(avatar).catch(e => console.error('Avatar set error:', e.message));
             }
-            if (bio) {
-                await db.collection('config').doc('global_profile').set({ bio }, { merge: true });
+            if (bio && firebaseEnabled) {
+                try {
+                    await db.collection('config').doc('global_profile').set({ bio }, { merge: true });
+                } catch (dbErr) {
+                    console.error('Bio save error:', dbErr.message);
+                }
             }
         }
         if (status) {
             client.user.setActivity(status, { type: ActivityType.Playing });
-            await db.collection('config').doc('global_profile').set({ status }, { merge: true });
+            if (firebaseEnabled) {
+                try {
+                    await db.collection('config').doc('global_profile').set({ status }, { merge: true });
+                } catch (dbErr) {
+                    console.error('Status save error:', dbErr.message);
+                }
+            }
         }
         res.json({ success: true });
     } catch (e) {
@@ -232,8 +242,9 @@ app.post('/api/guilds/:guildId/config', verifyUser, async (req, res) => {
     const { guildId } = req.params;
     const updates = req.body;
     
-    // Security: Check if user has MANAGE_GUILD permission (optional but recommended)
-    // For now, we trust the frontend or use Firebase security rules
+    if (!firebaseEnabled) {
+        return res.status(503).json({ error: 'Database unavailable (memory mode)' });
+    }
     
     try {
         await db.collection('guilds').doc(guildId).set(updates, { merge: true });
@@ -270,6 +281,9 @@ app.post('/api/stripe/create-checkout-session', verifyUser, async (req, res) => 
 
 // Premium Redeem
 app.post('/api/premium/redeem', verifyUser, async (req, res) => {
+    if (!firebaseEnabled) {
+        return res.status(503).json({ error: 'Database unavailable (memory mode)' });
+    }
     const { guildId, key } = req.body;
     try {
         const keyRef = db.collection('premium_keys').doc(key);
@@ -303,12 +317,20 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const guildId = session.metadata.guildId;
-        await db.collection('guilds').doc(guildId).set({
-            isPremium: true,
-            premiumSince: admin.firestore.FieldValue.serverTimestamp(),
-            lastPaymentId: session.payment_intent
-        }, { merge: true });
-        console.log(`💎 Premium activated for Guild: ${guildId}`);
+        if (firebaseEnabled) {
+            try {
+                await db.collection('guilds').doc(guildId).set({
+                    isPremium: true,
+                    premiumSince: admin.firestore.FieldValue.serverTimestamp(),
+                    lastPaymentId: session.payment_intent
+                }, { merge: true });
+                console.log(`💎 Premium activated for Guild: ${guildId}`);
+            } catch (dbErr) {
+                console.error('Premium activation DB error:', dbErr.message);
+            }
+        } else {
+            console.log(`💎 Premium activated for Guild: ${guildId} (DB not available)`);
+        }
     }
     res.json({ received: true });
 });
@@ -418,6 +440,7 @@ async function getGuildConfig(guildId) {
 // XP & Leveling Logic
 const userXpCache = new Map();
 async function giveXpAndRewards(guildId, userId, providedXp = null, providedBamboo = 0) {
+    if (!firebaseEnabled) return null; // 跳过如果 Firebase 未启用
     try {
         const key = `${guildId}-${userId}`;
         const now = Date.now();
@@ -503,6 +526,7 @@ client.once('ready', async () => {
     }
 
     const syncProfile = async () => {
+        if (!firebaseEnabled) return; // 跳过如果 Firebase 未启用
         try {
             const globalProfile = await db.collection('config').doc('global_profile').get();
             if (globalProfile.exists) {
@@ -534,13 +558,15 @@ client.on('guildCreate', async guild => {
     if (!channel) return;
 
     let bio = '我是由 **godking512 (团团熊猫主播)** 倾心打造的至尊版 AI 助手。我融合了先进的 Gemini 2.0 与 Groq 引擎，不仅能陪主人聊天，还能管理服务器、播放音乐、玩游戏，甚至是为您提供 24/7 的全方位守护喵！';
-    try {
-        const profileDoc = await db.collection('config').doc('global_profile').get();
-        if (profileDoc.exists && profileDoc.data().bio) {
-            bio = profileDoc.data().bio;
+    if (firebaseEnabled) {
+        try {
+            const profileDoc = await db.collection('config').doc('global_profile').get();
+            if (profileDoc.exists && profileDoc.data().bio) {
+                bio = profileDoc.data().bio;
+            }
+        } catch (e) {
+            console.error('Welcome Bio Fetch Error:', e);
         }
-    } catch (e) {
-        console.error('Welcome Bio Fetch Error:', e);
     }
 
     const embed = new EmbedBuilder()
@@ -643,11 +669,17 @@ client.on('guildMemberAdd', async member => {
             if (autoRole) await member.roles.add(autoRole).catch(() => {});
         }
 
-        // 3. Database Init
-        const memberRef = db.collection('guilds').doc(member.guild.id).collection('members').doc(member.user.id);
-        const doc = await memberRef.get();
-        if (!doc.exists) {
-            await memberRef.set({ xp: 0, level: 1, bamboo: 10, last_activity: new Date() });
+        // 3. Database Init (仅当 Firebase 启用时)
+        if (firebaseEnabled) {
+            try {
+                const memberRef = db.collection('guilds').doc(member.guild.id).collection('members').doc(member.user.id);
+                const doc = await memberRef.get();
+                if (!doc.exists) {
+                    await memberRef.set({ xp: 0, level: 1, bamboo: 10, last_activity: new Date() });
+                }
+            } catch (dbErr) {
+                console.error('Member DB Init Error:', dbErr.message);
+            }
         }
     } catch (e) {
         console.error('Welcome Event Error:', e.message);
@@ -715,8 +747,15 @@ client.on('interactionCreate', async interaction => {
                 // We'll look for a role that the admin set up. 
                 // For simplicity, we'll try to find a role named 'Verified' or from the interaction's context if we had it.
                 // In a more robust system, we'd store the specific role ID in Firebase.
-                const guildDoc = await db.collection('guilds').doc(interaction.guild.id).get();
-                const verifyRoleId = guildDoc.data()?.verifyRoleId;
+                let verifyRoleId = null;
+                if (firebaseEnabled) {
+                    try {
+                        const guildDoc = await db.collection('guilds').doc(interaction.guild.id).get();
+                        verifyRoleId = guildDoc.data()?.verifyRoleId;
+                    } catch (dbErr) {
+                        console.error('Firebase Error fetching verifyRoleId:', dbErr.message);
+                    }
+                }
                 
                 const role = interaction.guild.roles.cache.find(r => r.name.includes('验证') || r.name.includes('Verified')) || 
                              (verifyRoleId ? interaction.guild.roles.cache.get(verifyRoleId) : null);
@@ -868,6 +907,7 @@ client.on('messageCreate', async message => {
 
 // --- STATS SYNC ---
 const syncStats = async () => {
+    if (!firebaseEnabled) return; // 跳过如果 Firebase 未启用
     try {
         const guildCount = client.guilds.cache.size;
         const userCount = client.guilds.cache.reduce((acc, g) => acc + (g.memberCount || 0), 0);
