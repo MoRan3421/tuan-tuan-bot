@@ -352,6 +352,20 @@ app.listen(port, '0.0.0.0', () => {
 
 // --- CORE BOT LOGIC ---
 console.log('🤖 Creating Discord client...');
+
+// 配置 REST API 选项（增加超时和重试）
+const { REST } = require('discord.js');
+REST.options = {
+    timeout: 60000, // 60秒超时
+    retries: 3,     // 重试3次
+    api: 'https://discord.com/api',
+    cdn: 'https://cdn.discordapp.com',
+    invite: 'https://discord.gg',
+    template: 'https://discord.new',
+    gift: 'https://discord.gift',
+    scheduledEvent: 'https://discord.com/events'
+};
+
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -361,7 +375,17 @@ const client = new Client({
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.DirectMessages,
     ],
-    partials: [Partials.Channel, Partials.Message, Partials.User] 
+    partials: [Partials.Channel, Partials.Message, Partials.User],
+    ws: {
+        compress: false, // 禁用压缩以减少 CPU 使用
+        large_threshold: 50,
+        version: 10,
+        timeout: 60000 // WebSocket 60秒超时
+    },
+    presence: {
+        status: 'online',
+        activities: [{ name: '启动中...', type: 0 }]
+    }
 });
 console.log('✅ Discord client created');
 
@@ -945,22 +969,51 @@ process.on('unhandledRejection', (error) => {
 
 // --- DISCORD LOGIN ---
 console.log('🔑 Attempting to login to Discord...');
-client.login(process.env.DISCORD_TOKEN)
-    .then(() => {
+
+// 使用指数退避的重试机制
+let loginAttempts = 0;
+const maxLoginAttempts = 10;
+const baseRetryDelay = 10000; // 10秒基础延迟
+
+async function loginWithRetry() {
+    if (loginAttempts >= maxLoginAttempts) {
+        console.error(`❌ Maximum login attempts (${maxLoginAttempts}) reached. Bot will not retry.`);
+        return;
+    }
+    
+    loginAttempts++;
+    console.log(`🔄 Login attempt ${loginAttempts}/${maxLoginAttempts}...`);
+    
+    try {
+        await client.login(process.env.DISCORD_TOKEN);
         console.log('✅ Discord login successful!');
-    })
-    .catch((error) => {
+        loginAttempts = 0; // 重置计数器
+    } catch (error) {
         console.error('❌ Discord login failed:', error.message);
         console.error('   Error code:', error.code);
+        
         if (error.code === 'TokenInvalid') {
             console.error('   ⚠️ The Discord token is invalid. Please check your DISCORD_TOKEN secret.');
+            return; // Token 错误不重试
         } else if (error.code === 'DisallowedIntent') {
             console.error('   ⚠️ Missing privileged intents. Please enable them in Discord Developer Portal.');
+            return; // 权限错误不重试
         }
-        // 保持进程运行以便查看错误日志
-        console.log('   Bot will retry connection in 30 seconds...');
+        
+        // 网络超时错误特殊处理
+        if (error.message && error.message.includes('Connect Timeout')) {
+            console.log('   ⚠️ Network timeout detected. This might be a Hugging Face network restriction.');
+        }
+        
+        // 指数退避计算延迟
+        const retryDelay = Math.min(baseRetryDelay * Math.pow(2, loginAttempts - 1), 60000); // 最大60秒
+        console.log(`   ⏱️ Retrying in ${retryDelay / 1000} seconds...`);
+        
         setTimeout(() => {
-            console.log('🔄 Retrying Discord login...');
-            client.login(process.env.DISCORD_TOKEN);
-        }, 30000);
-    });
+            loginWithRetry();
+        }, retryDelay);
+    }
+}
+
+// 启动登录流程
+loginWithRetry();
