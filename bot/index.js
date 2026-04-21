@@ -354,7 +354,6 @@ app.listen(port, '0.0.0.0', () => {
 console.log('🤖 Creating Discord client...');
 
 // 配置 REST API 选项（增加超时和重试）
-const { REST } = require('discord.js');
 REST.options = {
     timeout: 60000, // 60秒超时
     retries: 3,     // 重试3次
