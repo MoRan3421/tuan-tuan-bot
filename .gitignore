@@ -1,15 +1,57 @@
+# Dependencies
 **/node_modules/
+
+# Environment Variables
 .env
+.env.local
+.env.*.local
+
+# Firebase Service Account Keys (CRITICAL SECURITY)
 service-account.json
+firebase-adminsdk-*.json
+*.key
+*.pem
+
+# Build outputs
 **/dist/
 **/dist-electron/
+**/build/
+
+# Firebase
 .firebase/
 .firebaserc
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temp
 **/tmp/
 **/Cwd/
+
+# Executables
 *.exe
+*.dmg
+
+# Scripts
 scripts/setup-github-secrets.js
-node_modules
+
+# Keys and secrets (CRITICAL)
+**/keys/
+**/secrets/
+**/*.key
+**/*.p12
+**/*.pfx

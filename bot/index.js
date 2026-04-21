@@ -10,13 +10,21 @@ const express = require('express');
 const cors = require('cors');
 
 // --- ROBUST ENVIRONMENT CHECK ---
-const CRITICAL_ENV = ['DISCORD_TOKEN', 'GOOGLE_API_KEY', 'FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+const CRITICAL_ENV = ['DISCORD_TOKEN', 'GOOGLE_API_KEY'];
+const OPTIONAL_ENV = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+
 const missingCritical = CRITICAL_ENV.filter(key => !process.env[key]);
+const missingOptional = OPTIONAL_ENV.filter(key => !process.env[key]);
 
 if (missingCritical.length > 0) {
     console.error(`\n❌ [STOP] 关键环境变量缺失: ${missingCritical.join(', ')}`);
     console.error("👉 请务必添加这些变量，否则团团无法启动喵！\n");
     throw new Error(`CRITICAL_ENV_MISSING: ${missingCritical.join(', ')}`);
+}
+
+if (missingOptional.length > 0) {
+    console.warn(`\n⚠️ [WARNING] Firebase 配置缺失: ${missingOptional.join(', ')}`);
+    console.warn("👉 团团将在内存模式运行，数据不会持久化。\n");
 }
 
 // --- OPTIONAL ENGINES ---
